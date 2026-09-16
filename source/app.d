@@ -489,36 +489,41 @@ void drawParamRow(const(char)[] label, ref ubyte val, int minV, int maxV, int x,
     ui.drawButton(btnPlusX, y, 12, 10, "+", false, hoverPlus);
 }
 
-// Draw SONG TAB: Playlist arranger, BPM, persistent disk save/load, demo song, palette theme
+// Draw SONG TAB: Playlist arranger, BPM, persistent disk save/load, demo songs, palette theme
 void drawSongTab(int mx, int my, bool mClick) @nogc nothrow {
-    int yPos = 16;
+    int yPos = 14;
 
-    // Tempo Control
-    ui.drawText("TEMPO (BPM):", 6, yPos + 2, 0x04);
-    bool bMinus = ui.pointInRect(mx, my, 90, yPos, 14, 11);
+    // Tempo Control + Mode button on same row
+    ui.drawText("BPM", 4, yPos + 2, 0x04);
+    bool bMinus = ui.pointInRect(mx, my, 30, yPos, 12, 11);
     if (bMinus && mClick) {
-        if (currentSong.bpm > 60) currentSong.bpm -= 4;
+        if (currentSong.bpm > 60) currentSong.bpm -= 2;
     }
-    ui.drawButton(90, yPos, 14, 11, "-", false, bMinus);
+    ui.drawButton(30, yPos, 12, 11, "-", false, bMinus);
 
-    ui.drawNumber(currentSong.bpm, 110, yPos + 2, 0x04, 3);
+    ui.drawNumber(currentSong.bpm, 45, yPos + 2, 0x04, 3);
 
-    bool bPlus = ui.pointInRect(mx, my, 138, yPos, 14, 11);
+    bool bPlus = ui.pointInRect(mx, my, 72, yPos, 12, 11);
     if (bPlus && mClick) {
-        if (currentSong.bpm < 240) currentSong.bpm += 4;
+        if (currentSong.bpm < 240) currentSong.bpm += 2;
     }
-    ui.drawButton(138, yPos, 14, 11, "+", false, bPlus);
+    ui.drawButton(72, yPos, 12, 11, "+", false, bPlus);
 
-    yPos += 16;
+    // Playback Mode button
+    bool playModeHover = ui.pointInRect(mx, my, 90, yPos, 66, 11);
+    if (playModeHover && mClick) {
+        playSongMode = !playSongMode;
+    }
+    ui.drawButton(90, yPos, 66, 11, playSongMode ? "ALL-SONG" : "LOOP-PAT", playSongMode, playModeHover);
 
-    // Arranger Playlist: [P0] -> [P1] -> [P2] -> [P3]
-    ui.drawText("ARRANGER CHAIN:", 6, yPos, 0x04);
-    yPos += 10;
+    yPos += 14;
 
+    // Arranger Playlist: [P0] [P1] [P2] [P3]
+    ui.drawText("CHAIN:", 4, yPos + 2, 0x04);
     for (ubyte i = 0; i < currentSong.playlistLen; ++i) {
-        int sx = 6 + i * 24;
+        int sx = 46 + i * 20;
         bool isCurrent = (isPlaying && currentPlaylistIdx == i);
-        bool hover = ui.pointInRect(mx, my, sx, yPos, 20, 11);
+        bool hover = ui.pointInRect(mx, my, sx, yPos, 18, 11);
         if (hover && mClick) {
             currentSong.playlist[i] = cast(ubyte)((currentSong.playlist[i] + 1) % song.MAX_PATTERNS);
         }
@@ -527,37 +532,75 @@ void drawSongTab(int mx, int my, bool mClick) @nogc nothrow {
         pBuf[0] = 'P';
         pBuf[1] = cast(char)('0' + currentSong.playlist[i]);
         pBuf[2] = '\0';
-        ui.drawButton(sx, yPos, 20, 11, pBuf[0..2], isCurrent, hover);
+        ui.drawButton(sx, yPos, 18, 11, pBuf[0..2], isCurrent, hover);
     }
 
     // Playlist length controls
-    bool lenMinus = ui.pointInRect(mx, my, 108, yPos, 14, 11);
-    if (lenMinus && mClick && currentSong.playlistLen > 1) {
-        currentSong.playlistLen--;
+    int lenX = 46 + currentSong.playlistLen * 20;
+    if (lenX < 132) {
+        bool lenMinus = ui.pointInRect(mx, my, 130, yPos, 12, 11);
+        if (lenMinus && mClick && currentSong.playlistLen > 1) {
+            currentSong.playlistLen--;
+        }
+        ui.drawButton(130, yPos, 12, 11, "-", false, lenMinus);
+
+        bool lenPlus = ui.pointInRect(mx, my, 144, yPos, 12, 11);
+        if (lenPlus && mClick && currentSong.playlistLen < song.MAX_PLAYLIST) {
+            currentSong.playlistLen++;
+        }
+        ui.drawButton(144, yPos, 12, 11, "+", false, lenPlus);
     }
-    ui.drawButton(108, yPos, 14, 11, "-", false, lenMinus);
 
-    ui.drawNumber(currentSong.playlistLen, 126, yPos + 2, 0x04);
+    yPos += 14;
 
-    bool lenPlus = ui.pointInRect(mx, my, 138, yPos, 14, 11);
-    if (lenPlus && mClick && currentSong.playlistLen < song.MAX_PLAYLIST) {
-        currentSong.playlistLen++;
+    // --- SONG PRESETS ---
+    ui.drawRect(2, yPos, 156, 1, 0x33); // Divider
+    yPos += 3;
+    ui.drawText("DEMO SONGS:", 4, yPos, 0x03);
+    yPos += 9;
+
+    // 1: Mega Man
+    bool megaHover = ui.pointInRect(mx, my, 4, yPos, 152, 11);
+    if (megaHover && mClick) {
+        song.initDemoMegaman(currentSong);
+        currentPattern = 0;
+        currentPlaylistIdx = 0;
+        setBanner("MEGAMAN LOADED!");
+        audition(0, 74);
     }
-    ui.drawButton(138, yPos, 14, 11, "+", false, lenPlus);
+    ui.drawButton(4, yPos, 152, 11, "1: MEGAMAN RUSH (150)", false, megaHover);
+    yPos += 12;
 
-    yPos += 18;
-
-    // Playback Full Song vs Loop Pattern
-    bool playModeHover = ui.pointInRect(mx, my, 6, yPos, 148, 12);
-    if (playModeHover && mClick) {
-        playSongMode = !playSongMode;
+    // 2: Cyber DnB 174
+    bool dnbHover = ui.pointInRect(mx, my, 4, yPos, 152, 11);
+    if (dnbHover && mClick) {
+        song.initDemoDnB(currentSong);
+        currentPattern = 0;
+        currentPlaylistIdx = 0;
+        setBanner("CYBER DNB LOADED!");
+        audition(0, 65);
     }
-    ui.drawButton(6, yPos, 148, 12, playSongMode ? "MODE: PLAY FULL SONG" : "MODE: LOOP PATTERN", playSongMode, playModeHover);
+    ui.drawButton(4, yPos, 152, 11, "2: CYBER DNB 174 (AMEN)", false, dnbHover);
+    yPos += 12;
 
-    yPos += 16;
+    // 3: Retro Quest
+    bool questHover = ui.pointInRect(mx, my, 4, yPos, 152, 11);
+    if (questHover && mClick) {
+        song.initDemoSong(currentSong);
+        currentPattern = 0;
+        currentPlaylistIdx = 0;
+        setBanner("RETRO QUEST LOADED!");
+        audition(0, 72);
+    }
+    ui.drawButton(4, yPos, 152, 11, "3: CHIPTUNE QUEST(132)", false, questHover);
+    yPos += 14;
 
-    // SAVE TO DISK (w4.diskw)
-    bool saveHover = ui.pointInRect(mx, my, 6, yPos, 148, 12);
+    // --- DISK PERSISTENCE & ACTIONS ---
+    ui.drawRect(2, yPos, 156, 1, 0x33); // Divider
+    yPos += 3;
+
+    // Save & Load Disk buttons side by side
+    bool saveHover = ui.pointInRect(mx, my, 4, yPos, 74, 11);
     if (saveHover && mClick) {
         if (song.saveSongToDisk(currentSong)) {
             setBanner("SAVED TO DISK!");
@@ -565,46 +608,30 @@ void drawSongTab(int mx, int my, bool mClick) @nogc nothrow {
             setBanner("SAVE FAILED!");
         }
     }
-    ui.drawButton(6, yPos, 148, 12, "SAVE SONG TO DISK", false, saveHover);
+    ui.drawButton(4, yPos, 74, 11, "SAVE DISK", false, saveHover);
 
-    yPos += 15;
-
-    // LOAD FROM DISK (w4.diskr)
-    bool loadHover = ui.pointInRect(mx, my, 6, yPos, 148, 12);
+    bool loadHover = ui.pointInRect(mx, my, 82, yPos, 74, 11);
     if (loadHover && mClick) {
         if (song.loadSongFromDisk(currentSong)) {
-            setBanner("LOADED FROM DISK!");
+            setBanner("LOADED DISK!");
         } else {
             setBanner("NO SAVE FOUND!");
         }
     }
-    ui.drawButton(6, yPos, 148, 12, "LOAD SONG FROM DISK", false, loadHover);
+    ui.drawButton(82, yPos, 74, 11, "LOAD DISK", false, loadHover);
+    yPos += 13;
 
-    yPos += 15;
-
-    // LOAD COOL DEMO SONG
-    bool demoHover = ui.pointInRect(mx, my, 6, yPos, 148, 12);
-    if (demoHover && mClick) {
-        song.initDemoSong(currentSong);
-        setBanner("COOL DEMO LOADED!");
-        audition(0, 72);
-    }
-    ui.drawButton(6, yPos, 148, 12, "LOAD COOL DEMO SONG", false, demoHover);
-
-    yPos += 15;
-
-    // CLEAR PATTERN
-    bool clrHover = ui.pointInRect(mx, my, 6, yPos, 148, 12);
+    // Clear Pattern button
+    bool clrHover = ui.pointInRect(mx, my, 4, yPos, 152, 11);
     if (clrHover && mClick) {
         song.clearPattern(currentSong.patterns[currentPattern]);
         setBanner("PATTERN CLEARED!");
     }
-    ui.drawButton(6, yPos, 148, 12, "CLEAR CURRENT PATTERN", false, clrHover);
+    ui.drawButton(4, yPos, 152, 11, "CLEAR CURRENT PATTERN", false, clrHover);
+    yPos += 13;
 
-    yPos += 15;
-
-    // THEME PALETTE TOGGLE
-    bool themeHover = ui.pointInRect(mx, my, 6, yPos, 148, 12);
+    // Palette theme switcher
+    bool themeHover = ui.pointInRect(mx, my, 4, yPos, 152, 11);
     if (themeHover && mClick) {
         ubyte nextTheme = (cast(ubyte)currentTheme + 1) % 4;
         applyPalette(cast(PaletteTheme)nextTheme);
@@ -612,12 +639,12 @@ void drawSongTab(int mx, int my, bool mClick) @nogc nothrow {
     }
 
     static immutable string[4] themeNames = [
-        "PALETTE: DMG GREEN",
-        "PALETTE: POCKET B&W",
-        "PALETTE: CYBER NEON",
-        "PALETTE: AMBER CRT"
+        "THEME: DMG GREEN",
+        "THEME: POCKET B&W",
+        "THEME: CYBER NEON",
+        "THEME: AMBER CRT"
     ];
-    ui.drawButton(6, yPos, 148, 12, themeNames[currentTheme], false, themeHover);
+    ui.drawButton(4, yPos, 152, 11, themeNames[currentTheme], false, themeHover);
 }
 
 // Draw notification banner popup

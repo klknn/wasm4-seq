@@ -313,6 +313,414 @@ void initDemoSong(ref Song song) @nogc nothrow {
     song.patterns[3].steps[15][3].note = audio.DrumType.Crash;
 }
 
+// =============================================================================
+// DEMO SONG 2: "MEGAMAN RUSH" (Capcom NES / GB Heroic Stage Theme)
+// 150 BPM, D Minor, Rapid 16th rolling bass, soaring heroic square leads
+// =============================================================================
+void initDemoMegaman(ref Song song) @nogc nothrow {
+    song.magic = SONG_MAGIC;
+    song.versionNum = SONG_VERSION;
+    song.bpm = 150;
+    song.playlistLen = 4;
+    song.playlist[0] = 0;
+    song.playlist[1] = 1;
+    song.playlist[2] = 2;
+    song.playlist[3] = 3;
+
+    initDefaultSynths(song.synths);
+    clearAllPatterns(song);
+
+    // Pulse 1: 50% square, crisp attack & release
+    song.synths[audio.Channel.Pulse1].dutyCycle = audio.DutyCycle.Duty50;
+    song.synths[audio.Channel.Pulse1].attack = 0;
+    song.synths[audio.Channel.Pulse1].decay = 3;
+    song.synths[audio.Channel.Pulse1].sustain = 8;
+    song.synths[audio.Channel.Pulse1].release = 4;
+    song.synths[audio.Channel.Pulse1].sustainVol = 85;
+    song.synths[audio.Channel.Pulse1].peakVol = 100;
+
+    // Pulse 2: 25% duty cycle, punchy harmonizer
+    song.synths[audio.Channel.Pulse2].dutyCycle = audio.DutyCycle.Duty25;
+    song.synths[audio.Channel.Pulse2].attack = 0;
+    song.synths[audio.Channel.Pulse2].decay = 3;
+    song.synths[audio.Channel.Pulse2].sustain = 6;
+    song.synths[audio.Channel.Pulse2].release = 3;
+    song.synths[audio.Channel.Pulse2].sustainVol = 75;
+    song.synths[audio.Channel.Pulse2].peakVol = 90;
+
+    // Triangle: Ultra punchy 16th bass
+    song.synths[audio.Channel.Triangle].attack = 0;
+    song.synths[audio.Channel.Triangle].decay = 1;
+    song.synths[audio.Channel.Triangle].sustain = 12;
+    song.synths[audio.Channel.Triangle].release = 2;
+    song.synths[audio.Channel.Triangle].sustainVol = 100;
+    song.synths[audio.Channel.Triangle].peakVol = 100;
+
+    // --- PATTERN 0: Main Heroic Stage Theme ---
+    // Pulse 1: Lead Melody (D5, D5, F5, G5, A5, C6, A5...)
+    song.patterns[0].steps[0][0].note = 74;  // D-5
+    song.patterns[0].steps[1][0].note = 74;  // D-5
+    song.patterns[0].steps[2][0].note = 77;  // F-5
+    song.patterns[0].steps[3][0].note = 79;  // G-5
+    song.patterns[0].steps[4][0].note = 81;  // A-5
+    song.patterns[0].steps[6][0].note = 81;  // A-5
+    song.patterns[0].steps[7][0].note = 84;  // C-6
+    song.patterns[0].steps[8][0].note = 81;  // A-5
+    song.patterns[0].steps[9][0].note = 79;  // G-5
+    song.patterns[0].steps[10][0].note = 77; // F-5
+    song.patterns[0].steps[11][0].note = 74; // D-5
+    song.patterns[0].steps[12][0].note = 77; // F-5
+    song.patterns[0].steps[14][0].note = 79; // G-5
+
+    // Pulse 2: Harmonizing lower line (F4, F4, A4, C5, D5...)
+    song.patterns[0].steps[0][1].note = 65;  // F-4
+    song.patterns[0].steps[1][1].note = 65;  // F-4
+    song.patterns[0].steps[2][1].note = 69;  // A-4
+    song.patterns[0].steps[3][1].note = 72;  // C-5
+    song.patterns[0].steps[4][1].note = 74;  // D-5
+    song.patterns[0].steps[6][1].note = 74;  // D-5
+    song.patterns[0].steps[7][1].note = 77;  // F-5
+    song.patterns[0].steps[8][1].note = 74;  // D-5
+    song.patterns[0].steps[9][1].note = 72;  // C-5
+    song.patterns[0].steps[10][1].note = 69; // A-4
+    song.patterns[0].steps[11][1].note = 65; // F-4
+    song.patterns[0].steps[12][1].note = 69; // A-4
+    song.patterns[0].steps[14][1].note = 72; // C-5
+
+    // Triangle: Continuous rolling 16th bassline (Mega Man signature!)
+    song.patterns[0].steps[0][2].note = 50;  // D-3
+    song.patterns[0].steps[1][2].note = 38;  // D-2
+    song.patterns[0].steps[2][2].note = 50;  // D-3
+    song.patterns[0].steps[3][2].note = 38;  // D-2
+    song.patterns[0].steps[4][2].note = 50;  // D-3
+    song.patterns[0].steps[5][2].note = 38;  // D-2
+    song.patterns[0].steps[6][2].note = 50;  // D-3
+    song.patterns[0].steps[7][2].note = 38;  // D-2
+    song.patterns[0].steps[8][2].note = 53;  // F-3
+    song.patterns[0].steps[9][2].note = 41;  // F-2
+    song.patterns[0].steps[10][2].note = 55; // G-3
+    song.patterns[0].steps[11][2].note = 43; // G-2
+    song.patterns[0].steps[12][2].note = 57; // A-3
+    song.patterns[0].steps[13][2].note = 45; // A-2
+    song.patterns[0].steps[14][2].note = 48; // C-3
+    song.patterns[0].steps[15][2].note = 60; // C-4
+
+    // Noise: Fast rock beat
+    song.patterns[0].steps[0][3].note = audio.DrumType.Crash;
+    song.patterns[0].steps[2][3].note = audio.DrumType.HiHatCl;
+    song.patterns[0].steps[4][3].note = audio.DrumType.Snare;
+    song.patterns[0].steps[6][3].note = audio.DrumType.HiHatCl;
+    song.patterns[0].steps[8][3].note = audio.DrumType.Kick;
+    song.patterns[0].steps[9][3].note = audio.DrumType.Kick;
+    song.patterns[0].steps[10][3].note = audio.DrumType.HiHatCl;
+    song.patterns[0].steps[12][3].note = audio.DrumType.Snare;
+    song.patterns[0].steps[14][3].note = audio.DrumType.Snare;
+    song.patterns[0].steps[15][3].note = audio.DrumType.HiHatCl;
+
+    // --- PATTERN 1: Wily Fortress B-Section ---
+    song.patterns[1].steps[0][0].note = 82;  // Bb5
+    song.patterns[1].steps[2][0].note = 84;  // C-6
+    song.patterns[1].steps[4][0].note = 86;  // D-6
+    song.patterns[1].steps[6][0].note = 84;  // C-6
+    song.patterns[1].steps[7][0].note = 82;  // Bb5
+    song.patterns[1].steps[8][0].note = 81;  // A-5
+    song.patterns[1].steps[10][0].note = 79; // G-5
+    song.patterns[1].steps[12][0].note = 81; // A-5
+    song.patterns[1].steps[14][0].note = 74; // D-5
+
+    song.patterns[1].steps[0][1].note = 74;  // D-5
+    song.patterns[1].steps[2][1].note = 76;  // E-5
+    song.patterns[1].steps[4][1].note = 77;  // F-5
+    song.patterns[1].steps[6][1].note = 76;  // E-5
+    song.patterns[1].steps[7][1].note = 74;  // D-5
+    song.patterns[1].steps[8][1].note = 72;  // C-5
+    song.patterns[1].steps[10][1].note = 70; // Bb4
+    song.patterns[1].steps[12][1].note = 72; // C-5
+    song.patterns[1].steps[14][1].note = 69; // A-4
+
+    // Triangle: Octave pumping bass
+    song.patterns[1].steps[0][2].note = 46;  // Bb2
+    song.patterns[1].steps[1][2].note = 58;  // Bb3
+    song.patterns[1].steps[2][2].note = 46;  // Bb2
+    song.patterns[1].steps[3][2].note = 58;  // Bb3
+    song.patterns[1].steps[4][2].note = 48;  // C-3
+    song.patterns[1].steps[5][2].note = 60;  // C-4
+    song.patterns[1].steps[6][2].note = 48;  // C-3
+    song.patterns[1].steps[7][2].note = 60;  // C-4
+    song.patterns[1].steps[8][2].note = 50;  // D-3
+    song.patterns[1].steps[9][2].note = 62;  // D-4
+    song.patterns[1].steps[10][2].note = 50; // D-3
+    song.patterns[1].steps[11][2].note = 62; // D-4
+    song.patterns[1].steps[12][2].note = 45; // A-2
+    song.patterns[1].steps[13][2].note = 57; // A-3
+    song.patterns[1].steps[14][2].note = 48; // C-3
+    song.patterns[1].steps[15][2].note = 60; // C-4
+
+    song.patterns[1].steps[0][3].note = audio.DrumType.Kick;
+    song.patterns[1].steps[2][3].note = audio.DrumType.HiHatCl;
+    song.patterns[1].steps[4][3].note = audio.DrumType.Snare;
+    song.patterns[1].steps[6][3].note = audio.DrumType.HiHatCl;
+    song.patterns[1].steps[8][3].note = audio.DrumType.Kick;
+    song.patterns[1].steps[10][3].note = audio.DrumType.HiHatCl;
+    song.patterns[1].steps[12][3].note = audio.DrumType.Snare;
+    song.patterns[1].steps[14][3].note = audio.DrumType.Snare;
+    song.patterns[1].steps[15][3].note = audio.DrumType.HiHatOp;
+
+    // --- PATTERN 2: 16th Solo Run (Boss Encounter) ---
+    song.patterns[2].steps[0][0].note = 74;  // D-5
+    song.patterns[2].steps[1][0].note = 76;  // E-5
+    song.patterns[2].steps[2][0].note = 77;  // F-5
+    song.patterns[2].steps[3][0].note = 79;  // G-5
+    song.patterns[2].steps[4][0].note = 81;  // A-5
+    song.patterns[2].steps[5][0].note = 84;  // C-6
+    song.patterns[2].steps[6][0].note = 86;  // D-6
+    song.patterns[2].steps[7][0].note = 89;  // F-6
+    song.patterns[2].steps[8][0].note = 88;  // E-6
+    song.patterns[2].steps[9][0].note = 86;  // D-6
+    song.patterns[2].steps[10][0].note = 84; // C-6
+    song.patterns[2].steps[11][0].note = 81; // A-5
+    song.patterns[2].steps[12][0].note = 79; // G-5
+    song.patterns[2].steps[13][0].note = 77; // F-5
+    song.patterns[2].steps[14][0].note = 79; // G-5
+    song.patterns[2].steps[15][0].note = 81; // A-5
+
+    // Staccato stabs on Pulse 2
+    song.patterns[2].steps[0][1].note = 62;  // D-4
+    song.patterns[2].steps[4][1].note = 65;  // F-4
+    song.patterns[2].steps[8][1].note = 69;  // A-4
+    song.patterns[2].steps[12][1].note = 72; // C-5
+
+    // Rolling bass
+    for (int s = 0; s < 16; ++s) {
+        song.patterns[2].steps[s][2].note = cast(ubyte)(s % 2 == 0 ? 50 : 38);
+    }
+
+    song.patterns[2].steps[0][3].note = audio.DrumType.Kick;
+    song.patterns[2].steps[2][3].note = audio.DrumType.Snare;
+    song.patterns[2].steps[4][3].note = audio.DrumType.Kick;
+    song.patterns[2].steps[6][3].note = audio.DrumType.Snare;
+    song.patterns[2].steps[8][3].note = audio.DrumType.Kick;
+    song.patterns[2].steps[10][3].note = audio.DrumType.Snare;
+    song.patterns[2].steps[12][3].note = audio.DrumType.Kick;
+    song.patterns[2].steps[14][3].note = audio.DrumType.Zap;
+    song.patterns[2].steps[15][3].note = audio.DrumType.Crash;
+
+    // --- PATTERN 3: Dramatic Climax & Loop Reset ---
+    song.patterns[3].steps[0][0].note = 86;  // D-6
+    song.patterns[3].steps[4][0].note = 84;  // C-6
+    song.patterns[3].steps[8][0].note = 82;  // Bb5
+    song.patterns[3].steps[12][0].note = 81; // A-5
+
+    song.patterns[3].steps[0][1].note = 74;  // D-5
+    song.patterns[3].steps[4][1].note = 72;  // C-5
+    song.patterns[3].steps[8][1].note = 70;  // Bb4
+    song.patterns[3].steps[12][1].note = 69; // A-4
+
+    song.patterns[3].steps[0][2].note = 50;  // D-3
+    song.patterns[3].steps[4][2].note = 48;  // C-3
+    song.patterns[3].steps[8][2].note = 46;  // Bb2
+    song.patterns[3].steps[12][2].note = 45; // A-2
+    song.patterns[3].steps[14][2].note = 43; // G-2
+    song.patterns[3].steps[15][2].note = 45; // A-2
+
+    for (int s = 0; s < 12; s += 2) {
+        song.patterns[3].steps[s][3].note = audio.DrumType.HiHatCl;
+    }
+    song.patterns[3].steps[12][3].note = audio.DrumType.Snare;
+    song.patterns[3].steps[13][3].note = audio.DrumType.Snare;
+    song.patterns[3].steps[14][3].note = audio.DrumType.Snare;
+    song.patterns[3].steps[15][3].note = audio.DrumType.Crash;
+}
+
+// =============================================================================
+// DEMO SONG 3: "CYBER DNB 174" (Modern Drum & Bass / Jungle)
+// 174 BPM, F Minor, 16th Amen break rhythm, 808 Reese sub bass, cyberpunk arps
+// =============================================================================
+void initDemoDnB(ref Song song) @nogc nothrow {
+    song.magic = SONG_MAGIC;
+    song.versionNum = SONG_VERSION;
+    song.bpm = 174;
+    song.playlistLen = 4;
+    song.playlist[0] = 0;
+    song.playlist[1] = 1;
+    song.playlist[2] = 2;
+    song.playlist[3] = 3;
+
+    initDefaultSynths(song.synths);
+    clearAllPatterns(song);
+
+    // Pulse 1: 12.5% thin reese/acid pluck
+    song.synths[audio.Channel.Pulse1].dutyCycle = audio.DutyCycle.Duty12_5;
+    song.synths[audio.Channel.Pulse1].attack = 0;
+    song.synths[audio.Channel.Pulse1].decay = 2;
+    song.synths[audio.Channel.Pulse1].sustain = 4;
+    song.synths[audio.Channel.Pulse1].release = 2;
+    song.synths[audio.Channel.Pulse1].sustainVol = 60;
+    song.synths[audio.Channel.Pulse1].peakVol = 95;
+
+    // Pulse 2: 50% square atmospheric stab
+    song.synths[audio.Channel.Pulse2].dutyCycle = audio.DutyCycle.Duty50;
+    song.synths[audio.Channel.Pulse2].attack = 0;
+    song.synths[audio.Channel.Pulse2].decay = 5;
+    song.synths[audio.Channel.Pulse2].sustain = 6;
+    song.synths[audio.Channel.Pulse2].release = 8;
+    song.synths[audio.Channel.Pulse2].sustainVol = 70;
+    song.synths[audio.Channel.Pulse2].peakVol = 85;
+
+    // Triangle: Deep sub bass with long sustain
+    song.synths[audio.Channel.Triangle].attack = 0;
+    song.synths[audio.Channel.Triangle].decay = 1;
+    song.synths[audio.Channel.Triangle].sustain = 15;
+    song.synths[audio.Channel.Triangle].release = 2;
+    song.synths[audio.Channel.Triangle].sustainVol = 100;
+    song.synths[audio.Channel.Triangle].peakVol = 100;
+
+    // --- PATTERN 0: The Classic DnB Amen Roller ---
+    // Pulse 1: Techy Cyberpunk Arp
+    song.patterns[0].steps[0][0].note = 65;  // F-4
+    song.patterns[0].steps[1][0].note = 68;  // Ab4
+    song.patterns[0].steps[2][0].note = 72;  // C-5
+    song.patterns[0].steps[3][0].note = 75;  // Eb5
+    song.patterns[0].steps[4][0].note = 72;  // C-5
+    song.patterns[0].steps[5][0].note = 68;  // Ab4
+    song.patterns[0].steps[6][0].note = 65;  // F-4
+    song.patterns[0].steps[7][0].note = 66;  // Gb4
+    song.patterns[0].steps[8][0].note = 65;  // F-4
+    song.patterns[0].steps[9][0].note = 68;  // Ab4
+    song.patterns[0].steps[10][0].note = 72; // C-5
+    song.patterns[0].steps[11][0].note = 77; // F-5
+    song.patterns[0].steps[12][0].note = 75; // Eb5
+    song.patterns[0].steps[13][0].note = 72; // C-5
+    song.patterns[0].steps[14][0].note = 70; // Bb4
+    song.patterns[0].steps[15][0].note = 68; // Ab4
+
+    // Pulse 2: Off-beat chord stabs
+    song.patterns[0].steps[2][1].note = 60;  // C-4
+    song.patterns[0].steps[6][1].note = 61;  // Db4
+    song.patterns[0].steps[10][1].note = 60; // C-4
+    song.patterns[0].steps[14][1].note = 58; // Bb3
+
+    // Triangle: Heavy 808 Sub Bassline
+    song.patterns[0].steps[0][2].note = 41;  // F-2
+    song.patterns[0].steps[3][2].note = 41;  // F-2
+    song.patterns[0].steps[6][2].note = 41;  // F-2
+    song.patterns[0].steps[8][2].note = 44;  // Ab2
+    song.patterns[0].steps[10][2].note = 46; // Bb2
+    song.patterns[0].steps[12][2].note = 49; // Db3
+    song.patterns[0].steps[14][2].note = 48; // C-3
+
+    // Noise: Syncopated DnB Amen Break (174 BPM!)
+    song.patterns[0].steps[0][3].note = audio.DrumType.Kick;
+    song.patterns[0].steps[1][3].note = audio.DrumType.HiHatCl;
+    song.patterns[0].steps[2][3].note = audio.DrumType.HiHatCl;
+    song.patterns[0].steps[3][3].note = audio.DrumType.HiHatCl;
+    song.patterns[0].steps[4][3].note = audio.DrumType.Snare;
+    song.patterns[0].steps[5][3].note = audio.DrumType.HiHatCl;
+    song.patterns[0].steps[6][3].note = audio.DrumType.HiHatCl;
+    song.patterns[0].steps[7][3].note = audio.DrumType.Snare; // ghost snare!
+    song.patterns[0].steps[8][3].note = audio.DrumType.HiHatCl;
+    song.patterns[0].steps[9][3].note = audio.DrumType.HiHatCl;
+    song.patterns[0].steps[10][3].note = audio.DrumType.Kick;  // off-beat kick!
+    song.patterns[0].steps[11][3].note = audio.DrumType.HiHatCl;
+    song.patterns[0].steps[12][3].note = audio.DrumType.Snare;
+    song.patterns[0].steps[13][3].note = audio.DrumType.HiHatCl;
+    song.patterns[0].steps[14][3].note = audio.DrumType.HiHatOp;
+    song.patterns[0].steps[15][3].note = audio.DrumType.Snare; // ghost pickup!
+
+    // --- PATTERN 1: The DnB Roller ---
+    song.patterns[1].steps[0][0].note = 77;  // F-5
+    song.patterns[1].steps[2][0].note = 75;  // Eb5
+    song.patterns[1].steps[4][0].note = 72;  // C-5
+    song.patterns[1].steps[6][0].note = 70;  // Bb4
+    song.patterns[1].steps[8][0].note = 72;  // C-5
+    song.patterns[1].steps[10][0].note = 75; // Eb5
+    song.patterns[1].steps[12][0].note = 77; // F-5
+    song.patterns[1].steps[14][0].note = 80; // Ab5
+
+    song.patterns[1].steps[1][1].note = 65;  // F-4
+    song.patterns[1].steps[5][1].note = 68;  // Ab4
+    song.patterns[1].steps[9][1].note = 65;  // F-4
+    song.patterns[1].steps[13][1].note = 61; // Db4
+
+    // Rolling syncopated sub bass
+    song.patterns[1].steps[0][2].note = 29;  // F-1
+    song.patterns[1].steps[2][2].note = 41;  // F-2
+    song.patterns[1].steps[4][2].note = 41;  // F-2
+    song.patterns[1].steps[6][2].note = 44;  // Ab2
+    song.patterns[1].steps[8][2].note = 29;  // F-1
+    song.patterns[1].steps[10][2].note = 46; // Bb2
+    song.patterns[1].steps[12][2].note = 41; // F-2
+    song.patterns[1].steps[14][2].note = 49; // Db3
+
+    // Double kick DnB groove
+    song.patterns[1].steps[0][3].note = audio.DrumType.Kick;
+    song.patterns[1].steps[2][3].note = audio.DrumType.HiHatCl;
+    song.patterns[1].steps[4][3].note = audio.DrumType.Snare;
+    song.patterns[1].steps[6][3].note = audio.DrumType.HiHatCl;
+    song.patterns[1].steps[8][3].note = audio.DrumType.Kick;
+    song.patterns[1].steps[10][3].note = audio.DrumType.Kick;
+    song.patterns[1].steps[12][3].note = audio.DrumType.Snare;
+    song.patterns[1].steps[14][3].note = audio.DrumType.HiHatOp;
+    song.patterns[1].steps[15][3].note = audio.DrumType.Snare;
+
+    // --- PATTERN 2: Neurofunk Drop ---
+    song.patterns[2].steps[0][0].note = 65;  // F-4
+    song.patterns[2].steps[3][0].note = 66;  // Gb4
+    song.patterns[2].steps[6][0].note = 65;  // F-4
+    song.patterns[2].steps[9][0].note = 68;  // Ab4
+    song.patterns[2].steps[12][0].note = 65; // F-4
+    song.patterns[2].steps[15][0].note = 72; // C-5
+
+    song.patterns[2].steps[2][1].note = 53;  // F-3
+    song.patterns[2].steps[6][1].note = 56;  // Ab3
+    song.patterns[2].steps[10][1].note = 58; // Bb3
+    song.patterns[2].steps[14][1].note = 61; // Db4
+
+    // Deep sub hits
+    song.patterns[2].steps[0][2].note = 41;  // F-2
+    song.patterns[2].steps[4][2].note = 41;  // F-2
+    song.patterns[2].steps[8][2].note = 39;  // Eb2
+    song.patterns[2].steps[12][2].note = 37; // Db2
+    song.patterns[2].steps[14][2].note = 36; // C-2
+
+    song.patterns[2].steps[0][3].note = audio.DrumType.Kick;
+    song.patterns[2].steps[2][3].note = audio.DrumType.Zap;
+    song.patterns[2].steps[4][3].note = audio.DrumType.Snare;
+    song.patterns[2].steps[6][3].note = audio.DrumType.HiHatCl;
+    song.patterns[2].steps[8][3].note = audio.DrumType.Kick;
+    song.patterns[2].steps[10][3].note = audio.DrumType.Kick;
+    song.patterns[2].steps[12][3].note = audio.DrumType.Snare;
+    song.patterns[2].steps[14][3].note = audio.DrumType.Zap;
+    song.patterns[2].steps[15][3].note = audio.DrumType.Crash;
+
+    // --- PATTERN 3: Jungle Breakdown & Build ---
+    song.patterns[3].steps[0][0].note = 65;  // F-4
+    song.patterns[3].steps[4][0].note = 68;  // Ab4
+    song.patterns[3].steps[8][0].note = 72;  // C-5
+    song.patterns[3].steps[12][0].note = 77; // F-5
+
+    song.patterns[3].steps[2][1].note = 60;  // C-4
+    song.patterns[3].steps[6][1].note = 63;  // Eb4
+    song.patterns[3].steps[10][1].note = 67; // G-4
+    song.patterns[3].steps[14][1].note = 70; // Bb4
+
+    song.patterns[3].steps[0][2].note = 29;  // F-1
+    song.patterns[3].steps[8][2].note = 32;  // Ab1
+
+    // Snare rush build up
+    for (int s = 0; s < 8; s += 2) {
+        song.patterns[3].steps[s][3].note = audio.DrumType.HiHatCl;
+    }
+    song.patterns[3].steps[8][3].note = audio.DrumType.Snare;
+    song.patterns[3].steps[9][3].note = audio.DrumType.Snare;
+    song.patterns[3].steps[10][3].note = audio.DrumType.Snare;
+    song.patterns[3].steps[11][3].note = audio.DrumType.Snare;
+    song.patterns[3].steps[12][3].note = audio.DrumType.Snare;
+    song.patterns[3].steps[13][3].note = audio.DrumType.Snare;
+    song.patterns[3].steps[14][3].note = audio.DrumType.Zap;
+    song.patterns[3].steps[15][3].note = audio.DrumType.Crash;
+}
+
 // Save song to WASM-4 persistent cartridge storage
 bool saveSongToDisk(ref const(Song) song) @nogc nothrow {
     uint written = w4.diskw(cast(const(void)*)&song, Song.sizeof);
