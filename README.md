@@ -2,10 +2,15 @@
 
 A full-featured retro music tracker and synthesizer sequencer written in **D (`-betterC`)** for the [WASM-4](https://wasm4.org) fantasy console. It enables composing authentic 4-channel Game Boy style chiptune tracks with real-time synthesizer controls, persistent disk storage, and built-in demo songs.
 
-🎮 **Play Live in Browser**: [https://klknn.github.io/wasm4-seq/](https://klknn.github.io/wasm4-seq/)
+🎮 **Play Live in Browser**: [https://klknn.github.io/wasm4-seq/](https://klknn.github.io/wasm4-seq/)  
+🎬 **Watch Video with Sound**: [megaman.mp4](megaman.mp4)
 
 <p align="center">
-  <img src="megaman.gif" alt="WASM-4 Game Boy Music Sequencer - Mega Man Rush Demo" width="320" height="320" />
+  <a href="megaman.mp4">
+    <img src="megaman.gif" alt="WASM-4 Game Boy Music Sequencer - Mega Man Rush Demo (Click to watch with audio)" width="320" height="320" />
+  </a>
+  <br>
+  <em>(Click preview above or <a href="megaman.mp4">click here</a> to play video with full stereo sound)</em>
 </p>
 
 ---
