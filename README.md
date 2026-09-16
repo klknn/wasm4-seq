@@ -4,6 +4,10 @@ A full-featured retro music tracker and synthesizer sequencer written in **D (`-
 
 🎮 **Play Live in Browser**: [https://klknn.github.io/wasm4-seq/](https://klknn.github.io/wasm4-seq/)
 
+<p align="center">
+  <img src="megaman.gif" alt="WASM-4 Game Boy Music Sequencer - Mega Man Rush Demo" width="320" height="320" />
+</p>
+
 ---
 
 ## Features
