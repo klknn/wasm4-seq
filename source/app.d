@@ -743,14 +743,15 @@ void handleGamepad() @nogc nothrow {
 // =============================================================================
 
 extern(C) export void start() {
-    // Try to load existing saved song from cartridge disk; if not found, initialize cool demo song!
+    // Try to load existing saved song from cartridge disk; if not found, initialize Mega Man demo song!
     if (!song.loadSongFromDisk(currentSong)) {
-        song.initDemoSong(currentSong);
-        setBanner("WASM-4 CHIPTUNE SEQ");
+        song.initDemoMegaman(currentSong);
+        setBanner("MEGAMAN RUSH (150 BPM)");
     } else {
         setBanner("LOADED FROM DISK!");
     }
 
+    isPlaying = true; // Auto-play demo chiptune on boot!
     applyPalette(PaletteTheme.DmgGreen);
 }
 
