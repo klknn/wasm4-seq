@@ -80,68 +80,130 @@ void playMelodicNote(ubyte channel, ubyte midiNote, ref const(SynthParams) synth
     w4.tone(midiNote, dur, vol, flags);
 }
 
-// Play a drum hit on the noise channel
+enum DRUM_COUNT = 6;
+
+// Default parameters for each of the 6 drum presets
+void initDefaultDrums(ref SynthParams[DRUM_COUNT] drums) @nogc nothrow {
+    // 0: Kick (7-bit low pitch drop)
+    drums[0].attack = 0;
+    drums[0].decay = 4;
+    drums[0].sustain = 1;
+    drums[0].release = 3;
+    drums[0].sustainVol = 0;
+    drums[0].peakVol = 100;
+    drums[0].pan = 0;
+    drums[0].muted = false;
+
+    // 1: Snare (15-bit white noise snap)
+    drums[1].attack = 0;
+    drums[1].decay = 3;
+    drums[1].sustain = 2;
+    drums[1].release = 8;
+    drums[1].sustainVol = 30;
+    drums[1].peakVol = 100;
+    drums[1].pan = 0;
+    drums[1].muted = false;
+
+    // 2: Closed Hi-Hat (Tight 15-bit click)
+    drums[2].attack = 0;
+    drums[2].decay = 1;
+    drums[2].sustain = 0;
+    drums[2].release = 2;
+    drums[2].sustainVol = 0;
+    drums[2].peakVol = 70;
+    drums[2].pan = 0;
+    drums[2].muted = false;
+
+    // 3: Open Hi-Hat (Sizzling 15-bit decay)
+    drums[3].attack = 0;
+    drums[3].decay = 4;
+    drums[3].sustain = 2;
+    drums[3].release = 10;
+    drums[3].sustainVol = 25;
+    drums[3].peakVol = 85;
+    drums[3].pan = 0;
+    drums[3].muted = false;
+
+    // 4: Crash (Shimmering long cymbal)
+    drums[4].attack = 1;
+    drums[4].decay = 8;
+    drums[4].sustain = 4;
+    drums[4].release = 24;
+    drums[4].sustainVol = 50;
+    drums[4].peakVol = 100;
+    drums[4].pan = 0;
+    drums[4].muted = false;
+
+    // 5: Zap (Arcade laser slide)
+    drums[5].attack = 0;
+    drums[5].decay = 5;
+    drums[5].sustain = 1;
+    drums[5].release = 4;
+    drums[5].sustainVol = 0;
+    drums[5].peakVol = 100;
+    drums[5].pan = 0;
+    drums[5].muted = false;
+}
+
+// Play a drum hit on the noise channel using its specific SynthParams
 void playDrum(ubyte drumType, ref const(SynthParams) synth, ubyte velocity = 100) @nogc nothrow {
     if (synth.muted || drumType == DrumType.None) return;
 
     uint baseVol = (cast(uint)synth.peakVol * velocity) / 100;
     if (baseVol > 100) baseVol = 100;
 
+    uint dur = packDuration(synth.attack, synth.decay, synth.sustain, synth.release);
+    uint susVol = (cast(uint)synth.sustainVol * baseVol) / 100;
+    uint vol = packVolume(cast(ubyte)susVol, cast(ubyte)baseVol);
+
     switch (drumType) {
-        case DrumType.Kick:
-            // Classic Game Boy kick: punchy low-frequency slide with 7-bit noise buzz
-            // Low 16 bits = 160 Hz, High 16 bits = 35 Hz (downward slide)
+        case DrumType.Kick: {
+            // Classic Game Boy kick: punchy downward frequency slide with 7-bit noise buzz
             uint freq = (35 << 16) | 160;
-            uint dur = packDuration(0, 4, 1, 3);
-            uint vol = packVolume(0, cast(ubyte)baseVol);
             uint flags = packFlags(w4.toneNoise, 1, synth.pan, false); // 7-bit metallic mode
             w4.tone(freq, dur, vol, flags);
             break;
+        }
 
-        case DrumType.Snare:
-            // Snappy Game Boy snare: 15-bit noise burst at ~1400 Hz with fast attack and crisp decay
+        case DrumType.Snare: {
+            // Snappy Game Boy snare: 15-bit noise burst
             uint freq = 1400;
-            uint dur = packDuration(0, 3, 2, 8);
-            uint vol = packVolume(cast(ubyte)(baseVol / 3), cast(ubyte)baseVol);
             uint flags = packFlags(w4.toneNoise, 0, synth.pan, false); // 15-bit white noise
             w4.tone(freq, dur, vol, flags);
             break;
+        }
 
-        case DrumType.HiHatCl:
-            // Short closed hi-hat: high pitch 15-bit noise, tiny duration
+        case DrumType.HiHatCl: {
+            // Short closed hi-hat: high pitch 15-bit noise
             uint freq = 4800;
-            uint dur = packDuration(0, 1, 0, 2);
-            uint vol = packVolume(0, cast(ubyte)((baseVol * 70) / 100));
             uint flags = packFlags(w4.toneNoise, 0, synth.pan, false);
             w4.tone(freq, dur, vol, flags);
             break;
+        }
 
-        case DrumType.HiHatOp:
-            // Open hi-hat: high pitch 15-bit noise with longer fade
+        case DrumType.HiHatOp: {
+            // Open hi-hat: sizzling 15-bit noise with longer fade
             uint freq = 4200;
-            uint dur = packDuration(0, 4, 2, 10);
-            uint vol = packVolume(cast(ubyte)(baseVol / 4), cast(ubyte)((baseVol * 85) / 100));
             uint flags = packFlags(w4.toneNoise, 0, synth.pan, false);
             w4.tone(freq, dur, vol, flags);
             break;
+        }
 
-        case DrumType.Crash:
+        case DrumType.Crash: {
             // Shimmering cymbal crash
             uint freq = 2400;
-            uint dur = packDuration(1, 8, 4, 24);
-            uint vol = packVolume(cast(ubyte)(baseVol / 2), cast(ubyte)baseVol);
             uint flags = packFlags(w4.toneNoise, 0, synth.pan, false);
             w4.tone(freq, dur, vol, flags);
             break;
+        }
 
-        case DrumType.Zap:
+        case DrumType.Zap: {
             // Retro arcade laser/zap: rapid frequency drop in 7-bit mode
             uint freq = (70 << 16) | 950;
-            uint dur = packDuration(0, 5, 1, 4);
-            uint vol = packVolume(0, cast(ubyte)baseVol);
             uint flags = packFlags(w4.toneNoise, 1, synth.pan, false);
             w4.tone(freq, dur, vol, flags);
             break;
+        }
 
         default:
             break;

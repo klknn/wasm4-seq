@@ -32,14 +32,15 @@ A full-featured retro music tracker and synthesizer sequencer written in **D (`-
   - ADSR envelope and volume controls
   - Channel mute toggle
 - **Noise (Game Boy Percussion & SFX)**:
-  - 6 dedicated drum presets:
+  - **6 Dedicated Drum Pads with Independent Synthesizers**:
     - `KCK` (Punchy downward pitch-slide 7-bit kick)
     - `SNR` (Crisp 15-bit white noise snare burst)
-    - `HAT` (Tight closed metallic hi-hat)
-    - `OPH` (Sizzling open hi-hat)
-    - `CRS` (Shimmering cymbal crash)
+    - `HAT` (Tight closed metallic hi-hat click)
+    - `OPH` (Sizzling open hi-hat decay)
+    - `CRS` (Shimmering long cymbal crash)
     - `ZAP` (Retro arcade laser / tom pitch drop)
-  - Quick test audition pads in the `SYNTH` tab
+  - **Per-Pad Controls**: Each drum pad now has its own independent **Attack, Decay, Sustain, Release, Peak Volume, and Sustain Volume**!
+  - Select any pad in `[SYNTH] > [NOISE]` to shape its sound independently with real-time audio audition.
 
 ### 2. Tracker & Step Sequencer Interface
 - **All 16 steps visible on screen simultaneously** at 160×160 resolution!

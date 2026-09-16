@@ -19,17 +19,18 @@ struct Pattern {
 
 struct Song {
     uint magic;          // 0x51533457 ("W4SQ")
-    ubyte versionNum;    // 1
+    ubyte versionNum;    // 2
     ubyte bpm;           // e.g. 132
     ubyte playlistLen;   // e.g. 4
     ubyte[MAX_PLAYLIST] playlist; // indices of patterns to play
     audio.SynthParams[MAX_CHANNELS] synths;
+    audio.SynthParams[audio.DRUM_COUNT] drums; // Independent synth params per drum pad!
     Pattern[MAX_PATTERNS] patterns;
 }
 
 // Magic constant: "W4SQ"
 enum SONG_MAGIC = 0x51533457;
-enum SONG_VERSION = 1;
+enum SONG_VERSION = 2;
 
 // Default synth parameters matching authentic Game Boy sound
 void initDefaultSynths(ref audio.SynthParams[MAX_CHANNELS] synths) @nogc nothrow {
@@ -116,6 +117,7 @@ void initDemoSong(ref Song song) @nogc nothrow {
     song.playlist[7] = 0;
 
     initDefaultSynths(song.synths);
+    audio.initDefaultDrums(song.drums);
     clearAllPatterns(song);
 
     // =========================================================================
@@ -328,6 +330,7 @@ void initDemoMegaman(ref Song song) @nogc nothrow {
     song.playlist[3] = 3;
 
     initDefaultSynths(song.synths);
+    audio.initDefaultDrums(song.drums);
     clearAllPatterns(song);
 
     // Pulse 1: 50% square, crisp attack & release
@@ -547,6 +550,7 @@ void initDemoDnB(ref Song song) @nogc nothrow {
     song.playlist[3] = 3;
 
     initDefaultSynths(song.synths);
+    audio.initDefaultDrums(song.drums);
     clearAllPatterns(song);
 
     // Pulse 1: 12.5% thin reese/acid pluck

@@ -53,6 +53,7 @@ __gshared {
 
     // Synth editor state
     ubyte selectedSynthChannel = 0; // 0..3
+    ubyte selectedPad = 0;          // 0..5 (0: Kick, 1: Snare, 2: HiHatCl, 3: HiHatOp, 4: Crash, 5: Zap)
 
     // Input state
     ubyte prevGamepad = 0;
@@ -91,9 +92,18 @@ void audition(ubyte channel, ubyte note) @nogc nothrow {
             audio.playMelodicNote(channel, note, currentSong.synths[channel], 100);
         }
     } else {
-        if (note > 0) {
-            audio.playDrum(note, currentSong.synths[audio.Channel.Noise], 100);
+        if (note > 0 && note <= audio.DRUM_COUNT) {
+            audio.playDrum(note, currentSong.drums[note - 1], 100);
         }
+    }
+}
+
+// Audition currently selected synth channel or drum pad
+void triggerSynthAudition() @nogc nothrow {
+    if (selectedSynthChannel < 3) {
+        audition(selectedSynthChannel, 60);
+    } else {
+        audio.playDrum(cast(ubyte)(selectedPad + 1), currentSong.drums[selectedPad], 100);
     }
 }
 
@@ -108,10 +118,10 @@ void playStepNotes(ubyte patIdx, int stepIdx) @nogc nothrow {
         }
     }
 
-    // Noise / Drum channel
+    // Noise / Drum channel (per-pad synth sound)
     ubyte drum = currentSong.patterns[patIdx].steps[stepIdx][3].note;
-    if (drum > 0) {
-        audio.playDrum(drum, currentSong.synths[audio.Channel.Noise], 100);
+    if (drum > 0 && drum <= audio.DRUM_COUNT) {
+        audio.playDrum(drum, currentSong.drums[drum - 1], 100);
     }
 }
 
@@ -428,14 +438,20 @@ void drawSynthTab(int mx, int my, bool mClick) @nogc nothrow {
         ui.drawButton(chX[i], 14, chW[i], 11, chNames[i], active, hover);
     }
 
-    ref audio.SynthParams synth = currentSong.synths[selectedSynthChannel];
+    ref audio.SynthParams synth = (selectedSynthChannel < 3)
+        ? currentSong.synths[selectedSynthChannel]
+        : currentSong.drums[selectedPad];
 
-    // Mute toggle
-    bool muteHover = ui.pointInRect(mx, my, 112, 28, 46, 10);
+    // Mute toggle (if noise, mutes active pad; if melodic, mutes channel)
+    int muteX = (selectedSynthChannel == audio.Channel.Noise) ? 116 : 112;
+    int muteY = 28;
+    int muteW = (selectedSynthChannel == audio.Channel.Noise) ? 42 : 46;
+    int muteH = (selectedSynthChannel == audio.Channel.Noise) ? 22 : 10;
+    bool muteHover = ui.pointInRect(mx, my, muteX, muteY, muteW, muteH);
     if (muteHover && mClick) {
         synth.muted = !synth.muted;
     }
-    ui.drawButton(112, 28, 46, 10, synth.muted ? "MUTED" : "ACTIVE", synth.muted, muteHover);
+    ui.drawButton(muteX, muteY, muteW, muteH, synth.muted ? "MUTED" : "ACTIVE", synth.muted, muteHover);
 
     int yPos = 28;
 
@@ -450,28 +466,30 @@ void drawSynthTab(int mx, int my, bool mClick) @nogc nothrow {
             bool hover = ui.pointInRect(mx, my, dx, yPos, 20, 10);
             if (hover && mClick) {
                 synth.dutyCycle = d;
-                audition(selectedSynthChannel, 60);
+                triggerSynthAudition();
             }
             ui.drawButton(dx, yPos, 20, 10, dutyLabels[d], active, hover);
         }
-        yPos += 14;
+        yPos += 18;
     } else if (selectedSynthChannel == audio.Channel.Noise) {
-        // Drum test pads
-        ui.drawText("PADS:", 4, yPos + 1, 0x04);
+        // Drum pad selector buttons (2 rows of 3)
+        ui.drawText("PADS:", 4, yPos + 6, 0x04);
         static immutable string[6] drumLabels = ["KCK", "SNR", "HAT", "OPH", "CRS", "ZAP"];
         for (ubyte d = 0; d < 6; ++d) {
-            int dx = 42 + (d % 3) * 22;
-            int dy = yPos + (d / 3) * 11;
-            bool hover = ui.pointInRect(mx, my, dx, dy, 20, 10);
+            int dx = 42 + (d % 3) * 24;
+            int dy = yPos + (d / 3) * 12;
+            bool active = (selectedPad == d);
+            bool hover = ui.pointInRect(mx, my, dx, dy, 22, 11);
             if (hover && mClick) {
-                audio.playDrum(cast(ubyte)(d + 1), synth, 100);
+                selectedPad = d;
+                audio.playDrum(cast(ubyte)(d + 1), currentSong.drums[d], 100);
             }
-            ui.drawButton(dx, dy, 20, 10, drumLabels[d], false, hover);
+            ui.drawButton(dx, dy, 22, 11, drumLabels[d], active, hover);
         }
-        yPos += 24;
+        yPos += 26;
     } else {
         ui.drawText("TRIANGLE: WARM BASS", 4, yPos + 1, 0x03);
-        yPos += 14;
+        yPos += 18;
     }
 
     // ADSR Envelope Controls
@@ -502,13 +520,9 @@ void drawSynthTab(int mx, int my, bool mClick) @nogc nothrow {
     // Audition / Test Button
     bool testHover = ui.pointInRect(mx, my, 20, yPos, 120, 14);
     if (testHover && mClick) {
-        if (selectedSynthChannel < 3) {
-            audition(selectedSynthChannel, 60);
-        } else {
-            audio.playDrum(audio.DrumType.Snare, synth, 100);
-        }
+        triggerSynthAudition();
     }
-    ui.drawButton(20, yPos, 120, 14, "TEST SOUND (AUDITION)", false, testHover);
+    ui.drawButton(20, yPos, 120, 14, (selectedSynthChannel < 3) ? "TEST SOUND (AUDITION)" : "TEST PAD (AUDITION)", false, testHover);
 }
 
 // Helper to draw a parameter adjustment row: [LABEL] [-] [VAL] [+]
@@ -521,7 +535,7 @@ void drawParamRow(const(char)[] label, ref ubyte val, int minV, int maxV, int x,
     if (hoverMinus && mClick) {
         if (cast(int)val - step >= minV) val = cast(ubyte)(val - step);
         else val = cast(ubyte)minV;
-        audition(selectedSynthChannel, 60);
+        triggerSynthAudition();
     }
     ui.drawButton(btnMinusX, y, 12, 10, "-", false, hoverMinus);
 
@@ -534,7 +548,7 @@ void drawParamRow(const(char)[] label, ref ubyte val, int minV, int maxV, int x,
     if (hoverPlus && mClick) {
         if (cast(int)val + step <= maxV) val = cast(ubyte)(val + step);
         else val = cast(ubyte)maxV;
-        audition(selectedSynthChannel, 60);
+        triggerSynthAudition();
     }
     ui.drawButton(btnPlusX, y, 12, 10, "+", false, hoverPlus);
 }
