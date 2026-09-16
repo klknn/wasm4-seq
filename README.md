@@ -74,12 +74,15 @@ A full-featured retro music tracker and synthesizer sequencer written in **D (`-
     - **Left / Right (← →)**: Jump pitch down / up by a full octave (12 semitones) for rapid composing.
     - **Button 2 (`Z` key)**: Deselect / exit back to Navigation Mode.
     - **Button 1 (`X` key)**: Confirm and exit back to Navigation Mode.
-- **Mouse / Touch**:
+- **Mouse / Touch & Bottom Toolbar**:
+  - **`[?]` Button**: Opens the on-screen **User Manual & Key Bindings** cheat-sheet overlay.
+  - **`OCT [-] [+]`**: Sets the default **Octave** (1–7) used when inserting new notes into empty cells (`---`).
+  - **`[NAV]` / `[EDIT]`**: Toggles between Navigation Mode and Value Input Mode.
+  - **`[-]` / `[+]`**: Fine-tunes note pitch up/down by 1 semitone.
+  - **`[DEL]`**: Deletes the note at cursor.
   - Click any tab (`SEQ`, `SYNTH`, `SONG`) to switch views.
   - Click any cell in the grid to audition and select it; click the selected cell again to toggle `[EDIT]` mode.
   - Right-click any cell to clear it.
-  - Click the bottom toolbar `[NAV]` / `[EDIT]` button to toggle edit mode.
-  - Click `+` / `-` buttons to adjust octaves, notes, BPM, and synth envelopes.
 
 ### 6. Retro Themes
 - 4 color palettes switchable on the fly:

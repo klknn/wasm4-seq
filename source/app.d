@@ -49,6 +49,7 @@ __gshared {
     int cursorChannel = 0;  // 0..3
     ubyte currentOctave = 4; // 2..6
     bool isEditMode = false; // false = navigation mode, true = value input mode
+    bool showHelp = false;   // true = display user manual & key bindings overlay
 
     // Synth editor state
     ubyte selectedSynthChannel = 0; // 0..3
@@ -190,6 +191,7 @@ void drawTopBar(int mx, int my, bool mClick) @nogc nothrow {
         if (hover && mClick) {
             currentTab = cast(Tab)i;
             isEditMode = false;
+            showHelp = false;
         }
         ui.drawButton(tabX[i], 1, tabW[i], 10, tabNames[i], active, hover);
     }
@@ -352,33 +354,29 @@ void drawSeqTab(int mx, int my, bool mClick, bool mRight) @nogc nothrow {
     // Bottom Toolbar (y: 143..160)
     ui.drawRect(0, 143, 160, 17, 0x22);
 
-    // Play button
-    bool pClick = ui.pointInRect(mx, my, 2, 145, 24, 13);
-    if (pClick && mClick) {
-        isPlaying = !isPlaying;
-        if (isPlaying) {
-            tickAccumulator = 0;
-            playStepNotes(currentPattern, currentStep);
-        }
+    // Help / Manual button [?]
+    bool qHover = ui.pointInRect(mx, my, 2, 145, 14, 13);
+    if (qHover && mClick) {
+        showHelp = !showHelp;
     }
-    ui.drawButton(2, 145, 24, 13, isPlaying ? "STOP" : "PLAY", isPlaying, pClick);
+    ui.drawButton(2, 145, 14, 13, "?", showHelp, qHover);
 
     // Octave controls
-    ui.drawText("O:", 28, 148, 0x04);
-    ui.drawNumber(currentOctave, 44, 148, 0x04);
+    ui.drawText("OCT", 18, 148, 0x04);
+    ui.drawNumber(currentOctave, 43, 148, 0x04);
 
-    if (ui.pointInRect(mx, my, 53, 145, 10, 13) && mClick) {
+    if (ui.pointInRect(mx, my, 52, 145, 10, 13) && mClick) {
         if (currentOctave > 1) currentOctave--;
     }
-    ui.drawButton(53, 145, 10, 13, "-", false, ui.pointInRect(mx, my, 53, 145, 10, 13));
+    ui.drawButton(52, 145, 10, 13, "-", false, ui.pointInRect(mx, my, 52, 145, 10, 13));
 
-    if (ui.pointInRect(mx, my, 64, 145, 10, 13) && mClick) {
+    if (ui.pointInRect(mx, my, 63, 145, 10, 13) && mClick) {
         if (currentOctave < 7) currentOctave++;
     }
-    ui.drawButton(64, 145, 10, 13, "+", false, ui.pointInRect(mx, my, 64, 145, 10, 13));
+    ui.drawButton(63, 145, 10, 13, "+", false, ui.pointInRect(mx, my, 63, 145, 10, 13));
 
     // Mode toggle button [NAV] / [EDIT]
-    bool editModeHover = ui.pointInRect(mx, my, 76, 145, 32, 13);
+    bool editModeHover = ui.pointInRect(mx, my, 75, 145, 32, 13);
     if (editModeHover && mClick) {
         isEditMode = !isEditMode;
         if (isEditMode) {
@@ -393,25 +391,25 @@ void drawSeqTab(int mx, int my, bool mClick, bool mRight) @nogc nothrow {
             audition(cast(ubyte)cursorChannel, st.note);
         }
     }
-    ui.drawButton(76, 145, 32, 13, isEditMode ? "EDIT" : "NAV", isEditMode, editModeHover);
+    ui.drawButton(75, 145, 32, 13, isEditMode ? "EDIT" : "NAV", isEditMode, editModeHover);
 
     // Note - / + buttons
-    if (ui.pointInRect(mx, my, 110, 145, 10, 13) && mClick) {
+    if (ui.pointInRect(mx, my, 109, 145, 10, 13) && mClick) {
         modifyCurrentCell(-1);
     }
-    ui.drawButton(110, 145, 10, 13, "-", false, ui.pointInRect(mx, my, 110, 145, 10, 13));
+    ui.drawButton(109, 145, 10, 13, "-", false, ui.pointInRect(mx, my, 109, 145, 10, 13));
 
-    if (ui.pointInRect(mx, my, 121, 145, 10, 13) && mClick) {
+    if (ui.pointInRect(mx, my, 120, 145, 10, 13) && mClick) {
         modifyCurrentCell(1);
     }
-    ui.drawButton(121, 145, 10, 13, "+", false, ui.pointInRect(mx, my, 121, 145, 10, 13));
+    ui.drawButton(120, 145, 10, 13, "+", false, ui.pointInRect(mx, my, 120, 145, 10, 13));
 
     // Clear note button
-    if (ui.pointInRect(mx, my, 133, 145, 25, 13) && mClick) {
+    if (ui.pointInRect(mx, my, 132, 145, 26, 13) && mClick) {
         clearCurrentCell();
         isEditMode = false;
     }
-    ui.drawButton(133, 145, 25, 13, "DEL", false, ui.pointInRect(mx, my, 133, 145, 25, 13));
+    ui.drawButton(132, 145, 26, 13, "DEL", false, ui.pointInRect(mx, my, 132, 145, 26, 13));
 }
 
 // Draw SYNTH TAB: sound design, ADSR envelopes, duty cycles, drum presets
@@ -714,11 +712,65 @@ void drawNotificationBanner() @nogc nothrow {
     ui.drawCString(bannerMsg.ptr, tx, 76, 0x04);
 }
 
+// Draw floating help / manual / key bindings modal
+void drawHelpModal(int mx, int my, bool mClick) @nogc nothrow {
+    // Dialog frame (x: 4, y: 8, w: 152, h: 146)
+    ui.drawRect(4, 8, 152, 146, 0x42); // Fill color 2, border color 4
+
+    // Header bar (x: 4, y: 8, w: 152, h: 11)
+    ui.drawRect(4, 8, 152, 11, 0x44); // Solid color 4 header
+    ui.drawText("HELP & KEY BINDINGS", 8, 10, 0x14);
+
+    // Close [X] button in header
+    bool closeHover = ui.pointInRect(mx, my, 142, 9, 11, 9);
+    if (closeHover && mClick) {
+        showHelp = false;
+        return;
+    }
+    ui.drawButton(142, 9, 11, 9, "X", false, closeHover);
+
+    // Help text rows (8px font, y: 22..134)
+    // Section 1: NAV MODE
+    ui.drawText("-- NAV MODE --", 24, 22, 0x04);
+    ui.drawText("ARROWS : Move grid", 8, 31, 0x04);
+    ui.drawText("X KEY  : Enter EDIT", 8, 40, 0x04);
+    ui.drawText("Z KEY  : Del / Play", 8, 49, 0x04);
+
+    // Section 2: EDIT MODE
+    ui.drawText("-- EDIT MODE --", 20, 60, 0x04);
+    ui.drawText("UP/DOWN: Note +/- 1", 8, 69, 0x04);
+    ui.drawText("LF/RT  : Octave +/-", 8, 78, 0x04);
+    ui.drawText("Z / X  : Exit EDIT", 8, 87, 0x04);
+
+    // Section 3: TIPS
+    ui.drawText("-- TIPS & INFO --", 12, 98, 0x04);
+    ui.drawText("OCT -/+: Base Octave", 8, 107, 0x04);
+    ui.drawText("NO COL : Percussion", 8, 116, 0x04);
+    ui.drawText("SONG   : Save & Load", 8, 125, 0x04);
+
+    // Bottom close button
+    bool bottomHover = ui.pointInRect(mx, my, 6, 137, 148, 14);
+    if (bottomHover && mClick) {
+        showHelp = false;
+        return;
+    }
+    ui.drawButton(6, 137, 148, 14, "CLICK / Z: CLOSE", false, bottomHover);
+}
+
 // =============================================================================
 // INPUT PROCESSING (GAMEPAD & MOUSE)
 // =============================================================================
 void handleGamepad() @nogc nothrow {
     ubyte pad = *w4.gamepad1;
+
+    // If help modal is active, any button press closes it
+    if (showHelp) {
+        if ((pad & (w4.button1 | w4.button2)) && !(prevGamepad & (w4.button1 | w4.button2))) {
+            showHelp = false;
+        }
+        prevGamepad = pad;
+        return;
+    }
 
     // Up / Down / Left / Right
     int dx = 0, dy = 0;
@@ -878,6 +930,11 @@ extern(C) export void update() {
 
     // Draw notification banner if active
     drawNotificationBanner();
+
+    // Draw help modal overlay if active
+    if (showHelp) {
+        drawHelpModal(mx, my, mClick);
+    }
 
     prevMouse = mouseBtns;
     prevMouseX = cast(short)mx;
