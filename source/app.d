@@ -48,6 +48,7 @@ __gshared {
     int cursorStep = 0;     // 0..15
     int cursorChannel = 0;  // 0..3
     ubyte currentOctave = 4; // 2..6
+    bool isEditMode = false; // false = navigation mode, true = value input mode
 
     // Synth editor state
     ubyte selectedSynthChannel = 0; // 0..3
@@ -145,19 +146,20 @@ void modifyCurrentCell(int semitoneDelta) @nogc nothrow {
     ref song.Step st = currentSong.patterns[currentPattern].steps[cursorStep][cursorChannel];
     if (cursorChannel < 3) {
         if (st.note == 0) {
-            st.note = cast(ubyte)(currentOctave * 12); // Base C in current octave
+            st.note = cast(ubyte)((currentOctave + 1) * 12); // Base C in current octave (e.g. C-4 = 60)
         } else {
             int newNote = cast(int)st.note + semitoneDelta;
-            if (newNote < 24) newNote = 24;
-            if (newNote > 96) newNote = 96;
+            if (newNote < 12) newNote = 12;
+            if (newNote > 108) newNote = 108;
             st.note = cast(ubyte)newNote;
         }
         audition(cast(ubyte)cursorChannel, st.note);
     } else {
-        // Drum channel
-        int newDrum = cast(int)st.note + semitoneDelta;
-        if (newDrum < 0) newDrum = audio.DrumType.Zap;
-        if (newDrum > audio.DrumType.Zap) newDrum = 0;
+        // Drum channel (cycle through 1..6)
+        int delta = (semitoneDelta > 0) ? 1 : -1;
+        int newDrum = cast(int)st.note + delta;
+        if (newDrum < 1) newDrum = audio.DrumType.Zap;
+        if (newDrum > audio.DrumType.Zap) newDrum = 1;
         st.note = cast(ubyte)newDrum;
         audition(3, st.note);
     }
@@ -187,6 +189,7 @@ void drawTopBar(int mx, int my, bool mClick) @nogc nothrow {
         bool hover = ui.pointInRect(mx, my, tabX[i], 1, tabW[i], 10);
         if (hover && mClick) {
             currentTab = cast(Tab)i;
+            isEditMode = false;
         }
         ui.drawButton(tabX[i], 1, tabW[i], 10, tabNames[i], active, hover);
     }
@@ -214,12 +217,18 @@ void drawSeqTab(int mx, int my, bool mClick, bool mRight) @nogc nothrow {
 
     // Prev / Next Pattern buttons
     if (ui.pointInRect(mx, my, 28, 13, 10, 8) && mClick) {
-        if (currentPattern > 0) currentPattern--;
+        if (currentPattern > 0) {
+            currentPattern--;
+            isEditMode = false;
+        }
     }
     ui.drawButton(28, 13, 10, 8, "<", false, ui.pointInRect(mx, my, 28, 13, 10, 8));
 
     if (ui.pointInRect(mx, my, 40, 13, 10, 8) && mClick) {
-        if (currentPattern + 1 < song.MAX_PATTERNS) currentPattern++;
+        if (currentPattern + 1 < song.MAX_PATTERNS) {
+            currentPattern++;
+            isEditMode = false;
+        }
     }
     ui.drawButton(40, 13, 10, 8, ">", false, ui.pointInRect(mx, my, 40, 13, 10, 8));
 
@@ -276,23 +285,43 @@ void drawSeqTab(int mx, int my, bool mClick, bool mRight) @nogc nothrow {
             if (ui.pointInRect(mx, my, cx - 1, ry, 30, 7)) {
                 if (mClick) {
                     if (isCursor) {
-                        modifyCurrentCell(1); // Cycle note
+                        // Clicking cursor cell toggles Edit mode!
+                        isEditMode = !isEditMode;
+                        if (isEditMode) {
+                            ref song.Step st = currentSong.patterns[currentPattern].steps[s][c];
+                            if (st.note == 0) {
+                                if (c < 3) {
+                                    st.note = cast(ubyte)((currentOctave + 1) * 12);
+                                } else {
+                                    st.note = audio.DrumType.Kick;
+                                }
+                            }
+                            audition(cast(ubyte)c, st.note);
+                        }
                     } else {
                         cursorStep = s;
                         cursorChannel = c;
+                        isEditMode = false;
                         ubyte n = currentSong.patterns[currentPattern].steps[s][c].note;
                         audition(cast(ubyte)c, n);
                     }
                 } else if (mRight) {
                     cursorStep = s;
                     cursorChannel = c;
+                    isEditMode = false;
                     clearCurrentCell();
                 }
             }
 
             // Cell highlight box
             if (isCursor) {
-                ui.drawRect(cx - 2, ry - 1, 31, 8, 0x44);
+                if (isEditMode) {
+                    // Value input mode: solid inverted box
+                    ui.drawRect(cx - 2, ry - 1, 31, 8, 0x44);
+                } else {
+                    // Navigation mode: framed outline box (fill color 2, border color 4)
+                    ui.drawRect(cx - 2, ry - 1, 31, 8, 0x42);
+                }
             }
 
             // Note text
@@ -305,7 +334,11 @@ void drawSeqTab(int mx, int my, bool mClick, bool mRight) @nogc nothrow {
 
             ushort textCol;
             if (isCursor) {
-                textCol = 0x14; // Inverted text on cursor
+                if (isEditMode) {
+                    textCol = 0x14; // Bright text on solid dark background in Edit mode
+                } else {
+                    textCol = (noteVal > 0) ? 0x04 : 0x03; // In nav mode, dark text on fill 2
+                }
             } else if (noteVal > 0) {
                 textCol = isPlayRow ? 0x14 : 0x04; // Active note
             } else {
@@ -320,7 +353,7 @@ void drawSeqTab(int mx, int my, bool mClick, bool mRight) @nogc nothrow {
     ui.drawRect(0, 143, 160, 17, 0x22);
 
     // Play button
-    bool pClick = ui.pointInRect(mx, my, 2, 145, 26, 13);
+    bool pClick = ui.pointInRect(mx, my, 2, 145, 24, 13);
     if (pClick && mClick) {
         isPlaying = !isPlaying;
         if (isPlaying) {
@@ -328,36 +361,55 @@ void drawSeqTab(int mx, int my, bool mClick, bool mRight) @nogc nothrow {
             playStepNotes(currentPattern, currentStep);
         }
     }
-    ui.drawButton(2, 145, 26, 13, isPlaying ? "STOP" : "PLAY", isPlaying, pClick);
+    ui.drawButton(2, 145, 24, 13, isPlaying ? "STOP" : "PLAY", isPlaying, pClick);
 
     // Octave controls
-    ui.drawText("OCT", 32, 148, 0x04);
-    ui.drawNumber(currentOctave, 56, 148, 0x04);
+    ui.drawText("O:", 28, 148, 0x04);
+    ui.drawNumber(currentOctave, 44, 148, 0x04);
 
-    if (ui.pointInRect(mx, my, 66, 145, 12, 13) && mClick) {
+    if (ui.pointInRect(mx, my, 53, 145, 10, 13) && mClick) {
         if (currentOctave > 1) currentOctave--;
     }
-    ui.drawButton(66, 145, 12, 13, "-", false, ui.pointInRect(mx, my, 66, 145, 12, 13));
+    ui.drawButton(53, 145, 10, 13, "-", false, ui.pointInRect(mx, my, 53, 145, 10, 13));
 
-    if (ui.pointInRect(mx, my, 80, 145, 12, 13) && mClick) {
+    if (ui.pointInRect(mx, my, 64, 145, 10, 13) && mClick) {
         if (currentOctave < 7) currentOctave++;
     }
-    ui.drawButton(80, 145, 12, 13, "+", false, ui.pointInRect(mx, my, 80, 145, 12, 13));
+    ui.drawButton(64, 145, 10, 13, "+", false, ui.pointInRect(mx, my, 64, 145, 10, 13));
+
+    // Mode toggle button [NAV] / [EDIT]
+    bool editModeHover = ui.pointInRect(mx, my, 76, 145, 32, 13);
+    if (editModeHover && mClick) {
+        isEditMode = !isEditMode;
+        if (isEditMode) {
+            ref song.Step st = currentSong.patterns[currentPattern].steps[cursorStep][cursorChannel];
+            if (st.note == 0) {
+                if (cursorChannel < 3) {
+                    st.note = cast(ubyte)((currentOctave + 1) * 12);
+                } else {
+                    st.note = audio.DrumType.Kick;
+                }
+            }
+            audition(cast(ubyte)cursorChannel, st.note);
+        }
+    }
+    ui.drawButton(76, 145, 32, 13, isEditMode ? "EDIT" : "NAV", isEditMode, editModeHover);
 
     // Note - / + buttons
-    if (ui.pointInRect(mx, my, 96, 145, 16, 13) && mClick) {
+    if (ui.pointInRect(mx, my, 110, 145, 10, 13) && mClick) {
         modifyCurrentCell(-1);
     }
-    ui.drawButton(96, 145, 16, 13, "-N", false, ui.pointInRect(mx, my, 96, 145, 16, 13));
+    ui.drawButton(110, 145, 10, 13, "-", false, ui.pointInRect(mx, my, 110, 145, 10, 13));
 
-    if (ui.pointInRect(mx, my, 114, 145, 16, 13) && mClick) {
+    if (ui.pointInRect(mx, my, 121, 145, 10, 13) && mClick) {
         modifyCurrentCell(1);
     }
-    ui.drawButton(114, 145, 16, 13, "+N", false, ui.pointInRect(mx, my, 114, 145, 16, 13));
+    ui.drawButton(121, 145, 10, 13, "+", false, ui.pointInRect(mx, my, 121, 145, 10, 13));
 
     // Clear note button
     if (ui.pointInRect(mx, my, 133, 145, 25, 13) && mClick) {
         clearCurrentCell();
+        isEditMode = false;
     }
     ui.drawButton(133, 145, 25, 13, "DEL", false, ui.pointInRect(mx, my, 133, 145, 25, 13));
 }
@@ -694,37 +746,71 @@ void handleGamepad() @nogc nothrow {
         holdTimer = 0;
     }
 
-    // Apply directional navigation in SEQ tab
+    // Apply directional navigation or value modification in SEQ tab
     if (currentTab == Tab.Seq) {
-        if (dy != 0) {
-            cursorStep = (cursorStep + dy + 16) % 16;
-            ubyte n = currentSong.patterns[currentPattern].steps[cursorStep][cursorChannel].note;
-            audition(cast(ubyte)cursorChannel, n);
-        }
-        if (dx != 0) {
-            cursorChannel = (cursorChannel + dx + 4) % 4;
-            ubyte n = currentSong.patterns[currentPattern].steps[cursorStep][cursorChannel].note;
-            audition(cast(ubyte)cursorChannel, n);
-        }
+        if (isEditMode) {
+            // VALUE INPUT MODE:
+            // Up / Down arrows: increase / decrease note by 1 semitone
+            if (dy != 0) {
+                modifyCurrentCell(dy < 0 ? 1 : -1);
+            }
+            // Left / Right arrows: jump octave down / up by 12 semitones
+            if (dx != 0) {
+                modifyCurrentCell(dx > 0 ? 12 : -12);
+            }
 
-        // Button 1 (X key): Enter / increment note
-        if ((pad & w4.button1) && !(prevGamepad & w4.button1)) {
-            modifyCurrentCell(1);
-        }
+            // Button 1 (X key): Confirm and deselect value input mode
+            if ((pad & w4.button1) && !(prevGamepad & w4.button1)) {
+                isEditMode = false;
+            }
 
-        // Button 2 (Z key): Delete note / toggle play
-        if ((pad & w4.button2) && !(prevGamepad & w4.button2)) {
-            if (currentSong.patterns[currentPattern].steps[cursorStep][cursorChannel].note > 0) {
-                clearCurrentCell();
-            } else {
-                isPlaying = !isPlaying;
-                if (isPlaying) {
-                    tickAccumulator = 0;
-                    playStepNotes(currentPattern, currentStep);
+            // Button 2 (Z key): Deselect value input mode
+            if ((pad & w4.button2) && !(prevGamepad & w4.button2)) {
+                isEditMode = false;
+            }
+        } else {
+            // NAVIGATION MODE:
+            // Arrow keys move cursor around the grid
+            if (dy != 0) {
+                cursorStep = (cursorStep + dy + 16) % 16;
+                ubyte n = currentSong.patterns[currentPattern].steps[cursorStep][cursorChannel].note;
+                audition(cast(ubyte)cursorChannel, n);
+            }
+            if (dx != 0) {
+                cursorChannel = (cursorChannel + dx + 4) % 4;
+                ubyte n = currentSong.patterns[currentPattern].steps[cursorStep][cursorChannel].note;
+                audition(cast(ubyte)cursorChannel, n);
+            }
+
+            // Button 1 (X key): Select value input mode
+            if ((pad & w4.button1) && !(prevGamepad & w4.button1)) {
+                isEditMode = true;
+                ref song.Step st = currentSong.patterns[currentPattern].steps[cursorStep][cursorChannel];
+                if (st.note == 0) {
+                    if (cursorChannel < 3) {
+                        st.note = cast(ubyte)((currentOctave + 1) * 12);
+                    } else {
+                        st.note = audio.DrumType.Kick;
+                    }
+                }
+                audition(cast(ubyte)cursorChannel, st.note);
+            }
+
+            // Button 2 (Z key): Delete note / toggle play
+            if ((pad & w4.button2) && !(prevGamepad & w4.button2)) {
+                if (currentSong.patterns[currentPattern].steps[cursorStep][cursorChannel].note > 0) {
+                    clearCurrentCell();
+                } else {
+                    isPlaying = !isPlaying;
+                    if (isPlaying) {
+                        tickAccumulator = 0;
+                        playStepNotes(currentPattern, currentStep);
+                    }
                 }
             }
         }
     } else {
+        isEditMode = false;
         // In other tabs, button 2 toggles playback
         if ((pad & w4.button2) && !(prevGamepad & w4.button2)) {
             isPlaying = !isPlaying;

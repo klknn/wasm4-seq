@@ -64,14 +64,22 @@ A full-featured retro music tracker and synthesizer sequencer written in **D (`-
   - **Pattern 3 (Breakdown & Drop)**: Sustained dramatic chords + rising echoes + sub-bass groove + snare crescendo drop.
 
 ### 5. Dual Input Controls (Mouse & Gamepad / Keyboard)
+- **Keyboard / Gamepad (Modal Tracker Controls)**:
+  - **Navigation Mode (`[NAV]`)**:
+    - **Arrow Keys (↑ ↓ ← →)**: Navigate cursor across steps and channels (with smooth key repeat).
+    - **Button 1 (`X` key)**: Select cell and enter **Value Input Mode** (`[EDIT]`). Inserts base note if empty.
+    - **Button 2 (`Z` key)**: Delete note back to `---` (rest), or toggle Play/Stop when cell is empty.
+  - **Value Input Mode (`[EDIT]`)**:
+    - **Up / Down (↑ ↓)**: Raise / lower pitch by 1 semitone (or cycle drum sounds) with instant audio preview.
+    - **Left / Right (← →)**: Jump pitch down / up by a full octave (12 semitones) for rapid composing.
+    - **Button 2 (`Z` key)**: Deselect / exit back to Navigation Mode.
+    - **Button 1 (`X` key)**: Confirm and exit back to Navigation Mode.
 - **Mouse / Touch**:
   - Click any tab (`SEQ`, `SYNTH`, `SONG`) to switch views.
-  - Click any cell in the grid to audition and select it. Click again to cycle notes; right-click to clear.
+  - Click any cell in the grid to audition and select it; click the selected cell again to toggle `[EDIT]` mode.
+  - Right-click any cell to clear it.
+  - Click the bottom toolbar `[NAV]` / `[EDIT]` button to toggle edit mode.
   - Click `+` / `-` buttons to adjust octaves, notes, BPM, and synth envelopes.
-- **Keyboard / Gamepad**:
-  - **D-Pad / Arrow Keys**: Navigate cursor across steps and channels (with key repeat).
-  - **Button 1 (`X` key)**: Enter / cycle note (instant audition).
-  - **Button 2 (`Z` key)**: Delete note / toggle Play & Stop.
 
 ### 6. Retro Themes
 - 4 color palettes switchable on the fly:
