@@ -1,8 +1,9 @@
 # Game Boy Music Sequencer for WASM-4 (in D Language)
 
+> 🎮 **Play Live in Browser**: [https://klknn.github.io/wasm4-seq/](https://klknn.github.io/wasm4-seq/)
+
 A full-featured retro music tracker and synthesizer sequencer written in **D (`-betterC`)** for the [WASM-4](https://wasm4.org) fantasy console. It enables composing authentic 4-channel Game Boy style chiptune tracks with real-time synthesizer controls, persistent disk storage, and built-in demo songs.
 
-🎮 **Play Live in Browser**: [https://klknn.github.io/wasm4-seq/](https://klknn.github.io/wasm4-seq/)  
 🎬 **Watch Video with Sound**: [megaman.mp4](megaman.mp4)
 
 <p align="center">
